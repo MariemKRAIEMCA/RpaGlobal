@@ -9,8 +9,8 @@ namespace RpaGlobal
 {
     class MyDbContext : DbContext
     {
-        public DbSet<RPA> Rpa { get; set; }
-        public DbSet<Calcule> Calcule { get; set; }
+        public DbSet<RPA> RPAs { get; set; }
+        public DbSet<Calcule> Calcules { get; set; }
         public MyDbContext() : base()
         {
 

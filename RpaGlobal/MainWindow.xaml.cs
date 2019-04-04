@@ -37,46 +37,62 @@ namespace RpaGlobal
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             
-            Calcule cal = db.Calcule.Last<Calcule>();
+            
+            var calTab = db.Calcules.ToList();
+            Calcule cal = calTab[0];
             var RpaList = new List<RPA>();
-            string[] dirs = Directory.GetDirectories(@"U:\DIL_INNOVATION_ET_RELAIS_CROISSANCES\INNO_Aurelien\00_Factory\Outils_PtfProjet\Rpa_Excel_Pilotage\");
+            string[] dirs = Directory.GetDirectories(@"C:\Users\Factory\Documents\Dossiertest");
             int SommeGlobal = 0;
             foreach (string dir in dirs)
             {
-                //recuperer la date de creation
-                DateTime dateCreation = System.IO.File.GetCreationTime(dir);
-                if(dateCreation > cal.LastDate)
+                string[] fils = Directory.GetFiles(dir, "F*");
+                foreach (string file in fils)
                 {
-                    string RpaName = dir.Substring(20).ToLower();
-                    var rpaTable = db.Rpa.SqlQuery("SELECT * FROM Rpa WHERE Nom=@Nom", new SqlParameter("@Nom", RpaName)).ToList();
-                    RPA rpa = rpaTable[1]; 
-                    //ouverture de fichier Excel et recup de nb
-                    xlApp = new Excel.Application();
-                    xlWorkBook = xlApp.Workbooks.Open(dir);
-                    xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets["Synthèse"];
-                    range = xlWorkSheet.UsedRange;
-                    int nb = range.Cells[Int32.Parse(rpa.ligne), Int32.Parse(rpa.colonne)];
-                    int SommeRpa = nb * Int32.Parse(rpa.minutes);
-                    //fin de calcule
+                    if (File.Exists(file))
+                    {
+                    
+                        string RpaName = new DirectoryInfo(System.IO.Path.GetDirectoryName(file)).Name;
+                        DateTime dateCreation = System.IO.File.GetCreationTime(file);
+                        if (dateCreation > cal.LastDate)
+                        {
+                        
+                            var rpaTable = db.RPAs.SqlQuery("SELECT *  FROM RPAs WHERE Nom=@Nom", new SqlParameter("@Nom", RpaName.ToLower())).ToList();
 
-                    SommeRpa += rpa.SommeMin;
-                    SommeGlobal += SommeRpa;
-                    rpa.SommeMin = SommeRpa;
-                    db.Entry(rpa).State = EntityState.Modified;
-                    cal.LastDate = DateTime.Now;
-                    db.Entry(cal).State = EntityState.Modified;
-                    db.SaveChanges();
+                            RPA rpa = rpaTable[0];
+                            //ouverture de fichier Excel et recup de nb
+                            xlApp = new Excel.Application();
+                            xlWorkBook = xlApp.Workbooks.Open(file);
+                            xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets["Synthèse"];
+                            range = xlWorkSheet.UsedRange;
+                            Double nb1 = (range.Cells[Int32.Parse(rpa.ligne), Int32.Parse(rpa.colonne)] as Excel.Range).Value;
+                            int nb = Convert.ToInt32(nb1);
+                            int SommeRpa = nb * Int32.Parse(rpa.minutes);
+                            //fin de calcule
+
+                            SommeGlobal += SommeRpa;
+                            SommeRpa += rpa.SommeMin;
+                            rpa.SommeMin = SommeRpa;
+                            db.Entry(rpa).State = EntityState.Modified;
+
+                            db.SaveChanges();
+                        }
+                    }
                 }
+                //recuperer la date de creation
+
             }
+            cal.LastDate = DateTime.Now;
+            db.Entry(cal).State = EntityState.Modified;
 
             cal.Sommes += SommeGlobal;
+            double nbj = cal.Sommes / 468.0;
             db.Entry(cal).State = EntityState.Modified;
             db.SaveChanges();
 
-            RpaList = db.Rpa.ToList();
+            RpaList = db.RPAs.ToList();
             /********************************************Creation du PDF*************************************/
             string html = "<html><body><h2 style = 'text-align:center'>récapitulatif</h2>" +
-                "<h3>Somme en jourH pour Rpa Factory" + cal.Sommes / 468 + "</h3>" +
+                "<h1 style = 'text-align:center; color:red' >" +  Math.Round(nbj, 1, MidpointRounding.ToEven) + "</h1>" +
                 "<table class='table table-striped' style='width: 100%;max-width: 100%;margin-bottom: 20px;margin-top: 20%;border-spacing:0;border-collapse: collapse;'>" +
                 "<thead style = 'display: table-header-group;vertical-align: middle;border-color: inherit;' >" +
                 "<tr style='display: table-row;vertical-align: inherit;border-color:inherit;'>" +
@@ -91,10 +107,11 @@ namespace RpaGlobal
                     "<td style='padding:8px;line-height:1.42857143;border-top:1px; border-left:3px; solid #ddd;vertical-align: bottom;border-bottom: 2px solid #ddd;font-size: 15px;text-align: center;' class='elementTableau'>" + rpa.periode + "</td>";
             }
             html+= "</tbody></table><footer style='position:absolute;bottom:0;width:100%;height:60px;'></footer></body></html>";
-            //byte[] pdfContent = new SimplePechkin(new GlobalConfig()).Convert(html);
+            byte[] pdfContent = new SimplePechkin(new GlobalConfig()).Convert(html);
+            File.WriteAllBytes(@"C:\Users\Factory\Documents\Dossiertest\pdftest.pdf", pdfContent);
 
-            
 
+            System.Windows.MessageBox.Show("Calcule effectué ");
 
 
 
@@ -133,9 +150,46 @@ namespace RpaGlobal
             {
                 rpa.periode = "m";
             }
-            db.Rpa.Add(rpa);
+            db.RPAs.Add(rpa);
             db.SaveChanges();
             System.Windows.MessageBox.Show("RPA bien ajouté");
         }
+
+        private void RpaNom_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void TextBox_TextChanged_1(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void TextBox_TextChanged_2(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void Min_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Periode1_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+
     }
 }
