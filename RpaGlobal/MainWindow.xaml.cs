@@ -41,11 +41,11 @@ namespace RpaGlobal
             var calTab = db.Calcules.ToList();
             Calcule cal = calTab[0];
             var RpaList = new List<RPA>();
-            string[] dirs = Directory.GetDirectories(@"C:\Users\Factory\Documents\Dossiertest");
+            string[] dirs = Directory.GetDirectories(@"U:\DIL_INNOVATION_ET_RELAIS_CROISSANCES\INNO_Aurelien\00_Factory\Outils_PtfProjet\Rpa_Excel_Pilotage\");
             int SommeGlobal = 0;
             foreach (string dir in dirs)
             {
-                string[] fils = Directory.GetFiles(dir, "F*");
+                string[] fils = Directory.GetFiles(dir, "C*");
                 foreach (string file in fils)
                 {
                     if (File.Exists(file))
@@ -83,7 +83,7 @@ namespace RpaGlobal
             }
             cal.LastDate = DateTime.Now;
             db.Entry(cal).State = EntityState.Modified;
-
+            
             cal.Sommes += SommeGlobal;
             double nbj = cal.Sommes / 468.0;
             db.Entry(cal).State = EntityState.Modified;
@@ -91,8 +91,8 @@ namespace RpaGlobal
 
             RpaList = db.RPAs.ToList();
             /********************************************Creation du PDF*************************************/
-            string html = "<html><body><h2 style = 'text-align:center'>récapitulatif</h2>" +
-                "<h1 style = 'text-align:center; color:red' >" +  Math.Round(nbj, 1, MidpointRounding.ToEven) + "</h1>" +
+            string html = "<html><body><img src='file:///P:/logoCA.jpg' Height='105' Width='110'/> <h2 style ='text-align:center; font-family= \'Trebuchet MS\', \'Lucida Sans Unicode\', \'Lucida Grande\', \'Lucida Sans\', Arial, sans-serif;color=darkslategrey;'>Récapitulatif</h2>" +
+                "<h1 style = 'text-align:center; color:SeaGreen ' ;font-family='\'Trebuchet MS_', \'Lucida Sans Unicode\', \'Lucida Grande\', \'Lucida Sans\', Arial, sans-serif' >" +  Math.Round(nbj, 1, MidpointRounding.ToEven) + " J/H</h1>" +
                 "<table class='table table-striped' style='width: 100%;max-width: 100%;margin-bottom: 20px;margin-top: 20%;border-spacing:0;border-collapse: collapse;'>" +
                 "<thead style = 'display: table-header-group;vertical-align: middle;border-color: inherit;' >" +
                 "<tr style='display: table-row;vertical-align: inherit;border-color:inherit;'>" +
@@ -108,7 +108,14 @@ namespace RpaGlobal
             }
             html+= "</tbody></table><footer style='position:absolute;bottom:0;width:100%;height:60px;'></footer></body></html>";
             byte[] pdfContent = new SimplePechkin(new GlobalConfig()).Convert(html);
-            File.WriteAllBytes(@"C:\Users\Factory\Documents\Dossiertest\pdftest.pdf", pdfContent);
+            try
+            {
+                File.WriteAllBytes(@"U:\DIL_INNOVATION_ET_RELAIS_CROISSANCES\INNO_Aurelien\00_Factory\Outils_PtfProjet\Sommes.pdf", pdfContent);
+                
+            }catch(InvalidCastException )
+            {
+                System.Windows.MessageBox.Show("Merci de fermer le pdf ");
+            }
 
 
             System.Windows.MessageBox.Show("Calcule effectué ");
